@@ -471,8 +471,12 @@ def render_audio_html(audio_filename):
 @app.route('/to/<inbox_id>/submit/<topic>', methods=['POST'])
 def submit_note(inbox_id, topic):
     """Store note in database and send a copy to user's email."""
+    if not storage.Inbox.does_exist(inbox_id):
+        abort(404)
+    elif not storage.Inbox.is_enabled(inbox_id):
+        abort(404)
+
     # Fetch the current inbox.
-    # print("topic", topic)
     inbox_db = storage.Inbox(inbox_id)
 
     # ---- AUDIO UPLOAD HANDLING ----
@@ -630,7 +634,8 @@ def callback_handling():
     session['profile'] = user_info
 
     userid = user_info['sub']
-    email = user_detail_info.get('email')
+    raw_email = user_detail_info.get('email')
+    email = raw_email.strip() if isinstance(raw_email, str) and raw_email.strip() else None
     nickname = resolve_nickname(user_detail_info, email, userid)
     if not isinstance(nickname, str) or not nickname.strip():
         logger.error(
@@ -646,8 +651,8 @@ def callback_handling():
                 'AUTH0_JWT_V2_TOKEN having expired.'
             ),
         )
-    picture = user_detail_info.get('picture')
-    name = user_detail_info.get('name')
+    picture = user_detail_info.get('picture') or user_info.get('picture') or url_for('static', filename='images/inbox.png')
+    name = user_detail_info.get('name') or user_info.get('name') or nickname
     session['profile']['nickname'] = nickname
     session['profile']['picture'] = picture
     session['profile']['name'] = name
