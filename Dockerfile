@@ -30,4 +30,4 @@ COPY . .
 EXPOSE 5000
 
 # Run gunicorn as per Procfile
-CMD ["gunicorn", "saythanks:app", "-w", "2", "--bind", "0.0.0.0:5000", "--log-file", "-"]
+CMD ["gunicorn", "saythanks:app", "-w", "4", "--bind", "0.0.0.0:5000", "--timeout", "120", "--log-file", "-"]
